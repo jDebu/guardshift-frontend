@@ -5,7 +5,8 @@ export default {
   theme: {
     colors: {
       ...colors,
-      'header': '#009cde'
+      'header': '#009cde',
+      'unassigned': '#edcecc'
     },
     extend: {
       boxShadow: {

@@ -1,20 +1,20 @@
 import { useEffect, useState } from 'react'
 import Select from 'react-select'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@mui/material'
 import { Container } from '@/components/Container.jsx'
 import useService from '@/hooks/useService.jsx'
 import useWeek from '@/hooks/useWeek.jsx'
-import EmployeesTable from '@/components/shifts/EmployeesTable.jsx'
-import DaysTable from '@/components/shifts/DaysTable.jsx'
+import { urlSearchParamsData } from '@/helpers/helpers'
+import DaysTable from '@/components/availabilities/DaysTable.jsx'
 
-
-export const HomePage = () => {
+export const EditAvailabilitiesPage = () => {
   const navigate = useNavigate()
+  const urlSearchParams = urlSearchParamsData()
+  const { service_id, start_date, end_date } = urlSearchParams
   const { servicesOptions, selectedService, setSelectedService, listService } = useService()
   const { weeksOptions, selectedWeek, setSelectedWeek, listWeek, labelValueName, setLabelValueName } = useWeek()
   const [data, setData] = useState(null)
-  const [params, setParams] = useState('')
 
   const handleServiceChange = (selectedOption) => {
     setSelectedService(selectedOption)
@@ -24,15 +24,19 @@ export const HomePage = () => {
     setLabelValueName(selectedOption.value_name)
   }
   useEffect(() => {
-    listService()
-    listWeek()
-  }, [])
+    if (start_date && end_date) {
+      listWeek(`${start_date} ${end_date}`)
+    }
+  }, [start_date, end_date])
+  useEffect(() => {
+    if (service_id) {
+      listService(service_id)
+    }
+  }, [service_id])
   useEffect(() => {
     if (selectedService && selectedWeek) {
       const [startDate, endDate] = selectedWeek.value.split(' ')
-      const shiftParams = `?service_id=${selectedService.value}&start_date=${startDate}&end_date=${endDate}`
-      setParams(`?service_id=${selectedService.value}&start_date=${startDate}&end_date=${endDate}`)
-      fetch(`http://localhost:3000/shifts${shiftParams}`)
+      fetch(`http://localhost:3000/availabilities?service_id=${selectedService.value}&start_date=${startDate}&end_date=${endDate}`)
         .then(response => response.json())
         .then(data => {
           setData(data)
@@ -70,11 +74,11 @@ export const HomePage = () => {
           </div>
           <div className="space-y-4 mt-4 md:mt-0 md:ml-4">
             <Button 
-                variant="contained"
-                sx={{ bgcolor: 'blue.500', color: 'white', paddingX: 1.5, paddingY: 1.5, borderRadius: '0.5rem' }}
-                onClick={() => navigate(`/disponibilidad/editar${params}`)}
-              >
-              Editar disponibilidad
+              variant="contained"
+              sx={{ bgcolor: 'blue.500', color: 'white', paddingX: 1.5, paddingY: 1.5, borderRadius: '0.5rem' }}
+              onClick={() => navigate('/')}
+            >
+              Ver turnos confirmados
             </Button>
           </div>
         </div>  
