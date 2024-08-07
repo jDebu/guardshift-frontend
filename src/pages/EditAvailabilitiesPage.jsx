@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import Select from 'react-select'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@mui/material'
 import { Container } from '@/components/Container.jsx'
 import useService from '@/hooks/useService.jsx'
@@ -9,6 +9,7 @@ import { urlSearchParamsData } from '@/helpers/helpers'
 import DaysTable from '@/components/availabilities/DaysTable.jsx'
 
 export const EditAvailabilitiesPage = () => {
+  const rootUrl = import.meta.env.VITE_API_BASE
   const navigate = useNavigate()
   const urlSearchParams = urlSearchParamsData()
   const { service_id, start_date, end_date } = urlSearchParams
@@ -35,14 +36,46 @@ export const EditAvailabilitiesPage = () => {
   }, [service_id])
   useEffect(() => {
     if (selectedService && selectedWeek) {
-      const [startDate, endDate] = selectedWeek.value.split(' ')
-      fetch(`http://localhost:3000/availabilities?service_id=${selectedService.value}&start_date=${startDate}&end_date=${endDate}`)
-        .then(response => response.json())
-        .then(data => {
-          setData(data)
-        })
+      fetchData()
     }
   }, [selectedService, selectedWeek])
+  const fetchData = () => {
+    const [startDate, endDate] = selectedWeek.value.split(' ')
+    fetch(`${rootUrl}/availabilities?service_id=${selectedService.value}&start_date=${startDate}&end_date=${endDate}`)
+      .then(response => response.json())
+      .then(data => {
+        setData(data)
+      })
+  }
+  const handleCheckboxChange = async (date, title, employeeId, blockId, blockShiftId) => {
+    const [start_time, end_time] = title.split('-')
+    const payload = {
+      date,
+      start_time,
+      end_time,
+      service_id: selectedService.value,
+      employee_id: employeeId,
+      block_id: blockId,
+      block_shift_id: blockShiftId
+    }
+    try {
+      const response = await fetch(`${rootUrl}/availabilities`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+      if (response.ok) {
+        fetchData()
+      } else {
+        console.error('Error updating availability')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+    }
+
+  }
   return (
     <Container>
       <div className="px-5 md:px-20 pt-4 md:pt-8 pb-14 md:pb-18 space-y-4">
@@ -75,14 +108,14 @@ export const EditAvailabilitiesPage = () => {
           <div className="space-y-4 mt-4 md:mt-0 md:ml-4">
             <Button 
               variant="contained"
-              sx={{ bgcolor: 'blue.500', color: 'white', paddingX: 1.5, paddingY: 1.5, borderRadius: '0.5rem' }}
+              sx={{ bgcolor: 'dodgerblue', color: 'white', paddingX: 1.5, paddingY: 1.5, borderRadius: '0.5rem' }}
               onClick={() => navigate('/')}
             >
               Ver turnos confirmados
             </Button>
           </div>
         </div>  
-        {data && <DaysTable data={data} />}
+        {data && <DaysTable data={data} handleCheckboxChange={handleCheckboxChange} />}
       </div>
     </Container>
   )

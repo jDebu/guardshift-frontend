@@ -14,7 +14,7 @@ const DaysTable = ({ data }) => {
           <table className="min-w-full divide-y divide-gray-200">
             <tbody className="bg-white divide-y divide-gray-200">
               {day.ranges.map((range, index) => (
-                <tr key={index} className="bg-green-100">
+                <tr key={index} className={range.employee_name ? 'bg-green-100': 'bg-unassigned'}>
                   <td className="px-6 py-4 whitespace-nowrap">{range.title}</td>
                   <td className="px-6 py-4 whitespace-nowrap" style={{ backgroundColor: range.color }} >{range.employee_name ?? '⚠️'}</td>
                 </tr>

@@ -5,16 +5,17 @@ import { Button } from '@mui/material'
 import { Container } from '@/components/Container.jsx'
 import useService from '@/hooks/useService.jsx'
 import useWeek from '@/hooks/useWeek.jsx'
-import EmployeesTable from '@/components/shifts/EmployeesTable.jsx'
 import DaysTable from '@/components/shifts/DaysTable.jsx'
 
 
 export const HomePage = () => {
+  const rootUrl = import.meta.env.VITE_API_BASE
   const navigate = useNavigate()
   const { servicesOptions, selectedService, setSelectedService, listService } = useService()
   const { weeksOptions, selectedWeek, setSelectedWeek, listWeek, labelValueName, setLabelValueName } = useWeek()
   const [data, setData] = useState(null)
   const [params, setParams] = useState('')
+  const [message, setMessage] = useState('')
 
   const handleServiceChange = (selectedOption) => {
     setSelectedService(selectedOption)
@@ -32,13 +33,25 @@ export const HomePage = () => {
       const [startDate, endDate] = selectedWeek.value.split(' ')
       const shiftParams = `?service_id=${selectedService.value}&start_date=${startDate}&end_date=${endDate}`
       setParams(`?service_id=${selectedService.value}&start_date=${startDate}&end_date=${endDate}`)
-      fetch(`http://localhost:3000/shifts${shiftParams}`)
+      fetch(`${rootUrl}/shifts${shiftParams}`)
         .then(response => response.json())
         .then(data => {
           setData(data)
         })
     }
   }, [selectedService, selectedWeek])
+  const handleCalculateShifts = () => {
+    fetch(`${rootUrl}/shifts${params}&auto_assign=true`)
+      .then(response => response.json())
+      .then(data => {
+        setData(data)
+        if (data.message) {
+          setMessage(data.message)
+        } else {
+          setMessage('')
+        }
+      })
+  }
   return (
     <Container>
       <div className="px-5 md:px-20 pt-4 md:pt-8 pb-14 md:pb-18 space-y-4">
@@ -68,7 +81,7 @@ export const HomePage = () => {
               <strong>{labelValueName}</strong>
             </div>
           </div>
-          <div className="space-y-4 mt-4 md:mt-0 md:ml-4">
+          <div className="flex flex-col space-y-4 mt-4 md:mt-0 md:ml-4">
             <Button 
                 variant="contained"
                 sx={{ bgcolor: 'blue.500', color: 'white', paddingX: 1.5, paddingY: 1.5, borderRadius: '0.5rem' }}
@@ -76,6 +89,15 @@ export const HomePage = () => {
               >
               Editar disponibilidad
             </Button>
+            <Button 
+                variant="contained"
+                sx={{ bgcolor: 'darkgreen', color: 'white', paddingX: 1.5, paddingY: 1.5, borderRadius: '0.5rem' }}
+                onClick={handleCalculateShifts}
+                disabled={data?.days.length > 0}
+              >
+              Calcular Turnos
+            </Button>
+            {message && <div className="text-red-500">{message}</div>}
           </div>
         </div>  
         {data && <DaysTable data={data} />}

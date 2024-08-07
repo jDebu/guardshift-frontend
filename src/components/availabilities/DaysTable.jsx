@@ -1,7 +1,7 @@
 import { Checkbox } from '@mui/material'
 import clsx from 'clsx'
 
-const DaysTable = ({ data }) => {
+const DaysTable = ({ data, handleCheckboxChange }) => {
   if (!data) return null
   const { employees, days } = data
   const columns = 2
@@ -11,6 +11,7 @@ const DaysTable = ({ data }) => {
     if (!columnWrappers[column]) columnWrappers[column] = []
     columnWrappers[column].push(day)
   })
+
   return (
     <div className="flex flex-wrap space-x-8">
       {Object.keys(columnWrappers).map((column, columnIndex) => (
@@ -41,8 +42,10 @@ const DaysTable = ({ data }) => {
                       {employees.map((employee) => (
                         <td key={employee.id} className="border text-center px-6 py-4 whitespace-nowrap">
                           <Checkbox
-                            checked={range[employee.id]}
-                            disabled
+                            checked={range[employee.id].available}
+                            onChange={() => handleCheckboxChange(
+                              day.date, range.title, employee.id, range[employee.id].block_id, range[employee.id].block_shift_id
+                            )}
                             sx={{ '&.Mui-checked': { color: employee.color } }}
                           />
                         </td>
